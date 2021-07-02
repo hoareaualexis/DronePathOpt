@@ -1,6 +1,6 @@
 import math
 from collections import deque
-from sympy import Point, Polygon, Ray, Segment
+from sympy import Point, Polygon, Ray, Segment, Line
 import itertools
 
 lis = [(4, 10), (8, 10), (8, 8), (4, 8), (4, 7), (8, 7), (9, 5), (9, 2), (6, 5), (6, 2), (1, 4), (1, 8)]
@@ -158,7 +158,7 @@ def arcs_add(near_point, index, arcs, liste, interior_arc):
         dist = near_point.distance(segment)
         if dist == 0:
 
-            if near_point == arc[0] or near_point == arc[0]:
+            if near_point == arc[0] or near_point == arc[1]:
 
                 arcs.append((liste[index], near_point))
 
@@ -330,13 +330,11 @@ def convex_shapes(dic_graph, start_pt, arcs):
     # new_list = copy.deepcopy(total_convex)
     new_list = redondance_del(total_convex)
 
-
     for li in new_list:
         print(li)
     print('\n')
-    # for li in total_convex:
-    #     if len(li) > 2:
-    #         print(li)
+
+    return new_list
 
 
 def redondance_del(total_convex):
@@ -361,17 +359,96 @@ def redondance_del(total_convex):
     return new_list
 
 
+def arc_generator(liste):
+    arcs = []
+    n = len(liste)
+    for i in range(n - 1):
+        arcs.append((liste[i], liste[i + 1]))
+    arcs.append((liste[n - 1], liste[0]))
+
+    # print(liste)
+    # print(arcs)
+
+    poly = Polygon(*liste)
+
+    return poly, arcs
+
+
+def long_cote(arcs):
+
+    grand_cote = ''
+    big_edge = 0
+
+    distance = lambda a, b: math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+
+    for cote in arcs:
+        # dist = cote[0].distance(cote[1])
+        dist = distance(cote[0], cote[1])
+        if big_edge <= dist:
+            big_edge = dist
+            grand_cote = cote
+    return grand_cote
+
+
+def nombre_BF(liste, arcs):
+
+    cote = long_cote(arcs)
+    line = Line(cote[0], cote[1])
+
+    far_point1 = 0
+    long_dist1, long_dist2 = 0, 0
+
+    ##Calcul de la profondeur du champ
+    for pt in liste:
+        dist = float(pt.distance(line))
+
+        if long_dist1 <= dist:
+            long_dist2 = long_dist1
+            long_dist1 = dist
+            far_point2 = far_point1
+            far_point1 = pt
+
+        elif long_dist2 <= dist:
+            long_dist2 = dist
+            far_point2 = pt
+
+    k = 1
+    spread_width = float(long_dist1/k)
+    while spread_width > 2:
+        k += 1
+        spread_width = float(long_dist1/k)
+    # print('spread_width et nombre de BF: ', spread_width, 'et', k)
+
+    # return far_point1, far_point2, long_dist1, long_dist2
+    return spread_width, k
+
+
 def execution_main():
 
     conc_pt, nbre = concave_points(lis)
     config_list = list(itertools.product([0, 1], repeat=nbre))
 
-    for conf in config_list:
-        arcs, liste = intersection_points(lis, conc_pt, conf)
+    all_permut = list(itertools.permutations(conc_pt))
 
-        dic_graph, start_pts = graphe_def(arcs, liste)
+    for co_pts in all_permut:
+        for pt in co_pts:
+            print(pt)
 
-        convex_shapes(dic_graph, start_pts, arcs)
+        for conf in config_list:
+            arcs, liste = intersection_points(lis, co_pts, conf)
+
+            dic_graph, start_pts = graphe_def(arcs, liste)
+
+            shape_list = convex_shapes(dic_graph, start_pts, arcs)
+            # print('shape_list:', shape_list)
+
+            for convex_sh in shape_list:
+                pol, shape_arc = arc_generator(convex_sh)
+
+                spread_width, k = nombre_BF(convex_sh, shape_arc)
+                print('nbre de BF and sp_width: ', k, 'et ', round(spread_width, 2))
+            print('\n')
+
 
 execution_main()
 
