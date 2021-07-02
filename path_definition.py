@@ -190,11 +190,6 @@ def path():
             trajet.append(couple)
         swapper += 1
 
-    # ligne = Line(Point(lines_tuple[-1]), Point(lines_tuple[-2]))
-    # dist_rest = float(far_pt.distance(ligne))
-    # print('distance restante: ', 2*dist_rest)
-    #
-    # print('taille de la liste =', len(lines_tuple), ' et dim_list =', dim_list)
     print(trajet)
 
     return trajet
@@ -440,12 +435,11 @@ maximum_energy_of_the_drone = float(4000*600)  # 4000W pour un flight time de 10
 maximum_drone_weight = 36
 
 def execution_main():
-    poly_def()
-    path()
+    # poly_def()
+    # path()
+    solution = trajectory()
+    _, spread_width, _ = nombre_BF()
+    f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, spread_width, drone_weight)
 
-# execution_main()
-# print(nombre_BF())
-# print(calcul_metric(solution, maximum_take_off_weight))
-solution = trajectory()
-_, spread_width, _ = nombre_BF()
-f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, spread_width, drone_weight)
+
+execution_main()
