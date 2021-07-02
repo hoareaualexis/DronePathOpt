@@ -1,22 +1,23 @@
 import math
 from collections import deque
 from sympy import Point, Polygon, Ray, Segment
+import itertools
 
-# lis = [(4, 10), (8, 10), (8, 8), (4, 8), (4, 7), (8, 7), (9, 5), (9, 2), (6, 5), (6, 2), (1, 4), (1, 8)]
-lis = [(3, 9), (9, 9), (12, 5), (8, 5), (8, 2), (5, 4), (1, 4)]
+lis = [(4, 10), (8, 10), (8, 8), (4, 8), (4, 7), (8, 7), (9, 5), (9, 2), (6, 5), (6, 2), (1, 4), (1, 8)]
+# lis = [(3, 9), (9, 9), (12, 5), (8, 5), (8, 2), (5, 4), (1, 4)]
 
 
 def poly_def(lis):
-    # p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11 = map(Point, lis)
-    p0, p1, p2, p3, p4, p5, p6 = map(Point, lis)
+    p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11 = map(Point, lis)
+    # p0, p1, p2, p3, p4, p5, p6 = map(Point, lis)
 
-    # liste = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11]  ## liste des points de la figures
-    liste = [p0, p1, p2, p3, p4, p5, p6]
+    liste = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11]  ## liste des points de la figures
+    # liste = [p0, p1, p2, p3, p4, p5, p6]
 
-    # arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6),         ## Liste des cotes du polygone definis sous formes d'arcs
-    #         (p6, p7), (p7, p8), (p8, p9), (p9, p10), (p10, p11),
-    #         (p11, p0)]
-    arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6), (p6, p0)]
+    arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6),         ## Liste des cotes du polygone definis sous formes d'arcs
+            (p6, p7), (p7, p8), (p8, p9), (p9, p10), (p10, p11),
+            (p11, p0)]
+    # arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6), (p6, p0)]
 
     poly = Polygon(*liste)  ## definition du polygone
 
@@ -48,9 +49,11 @@ def concave_points(lis):
         if ccw(a, b, c):
             concav_points.append(liste[i])
             print(i, ':', liste[i])
-    # print('\n')
 
-    return concav_points
+    nbre = len(concav_points)
+    print('\n')
+
+    return concav_points, nbre
 
 
 def short_distance(vector_points, liste, index):
@@ -99,20 +102,23 @@ def section_droite2(liste, num, index):
     return r
 
 
-def intersection_points(lis):
+def intersection_points(lis, concaves_pt, conf):
 
-    concaves_pt = concave_points(lis)
     liste, arcs, poly = poly_def(lis)
 
-    inter_points, arcs_intern = [], []
+    arcs_intern = []
 
     n = len(liste)
 
+    i = 0
     for con_pt in concaves_pt:
 
         index = liste.index(con_pt)
-
-        r = section_droite1(liste, n, index)
+        if conf[i] == 0:
+            r = section_droite1(liste, n, index)
+        else:
+            r = section_droite2(liste, n, index)
+        i += 1
         print('semi_droite de section: ', r)
 
         show_inter = r.intersection(poly)
@@ -135,15 +141,9 @@ def intersection_points(lis):
 
             near_point = short_distance(show_inter, liste, index)
 
-        # print('semi_droite and inter_point : ', r, 'et', near_point)
-        # print('show_inter: ', show_inter, '\n')
-        ##Ajout du nouvel arc
         arcs_add(near_point, index, arcs, liste, arcs_intern)
 
-        ## Liste de points d'intersection
-        inter_points.append(near_point)
-
-    # print('arcs interieurs', arcs_intern, '\n')
+    print('\n')
 
     return arcs, liste
 
@@ -190,9 +190,9 @@ def arcs_add(near_point, index, arcs, liste, interior_arc):
     return arcs, interior_arc
 
 
-def graphe_def(lis):
+def graphe_def(arcs, liste):
 
-    arcs, liste = intersection_points(lis)
+    # arcs, liste = intersection_points(lis)
     dic_graph = {}
 
     for pt in liste:
@@ -215,7 +215,7 @@ def graphe_def(lis):
         if nb_vois > 2:
             start_pt_list.append(key)
 
-    return dic_graph, liste, start_pt_list, arcs
+    return dic_graph, start_pt_list
 
 
 def find_paths_dfs(graph, start, end):
@@ -315,9 +315,9 @@ def convex_select(path_gen, arcs):
     return total_convex
 
 
-def convex_shapes(lis):
+def convex_shapes(dic_graph, start_pt, arcs):
 
-    dic_graph, _, start_pt, arcs = graphe_def(lis)
+    # dic_graph, _, start_pt, arcs = graphe_def(lis)
     total_convex = []
 
     for start in start_pt:
@@ -330,10 +330,10 @@ def convex_shapes(lis):
     # new_list = copy.deepcopy(total_convex)
     new_list = redondance_del(total_convex)
 
-    print('\n')
+
     for li in new_list:
         print(li)
-    # print('\n')
+    print('\n')
     # for li in total_convex:
     #     if len(li) > 2:
     #         print(li)
@@ -362,14 +362,16 @@ def redondance_del(total_convex):
 
 
 def execution_main():
-    # lis = [(4, 10), (8, 10), (8, 8), (4, 8), (4, 7), (8, 7), (9, 5), (9, 2), (6, 5), (6, 2), (1, 4), (1, 8)]
-    # lis = [(3, 9), (9, 9), (12, 5), (8, 5), (8, 2), (5, 4), (1, 4)]
 
-    poly_def(lis)
-    # intersection_points(lis)
+    conc_pt, nbre = concave_points(lis)
+    config_list = list(itertools.product([0, 1], repeat=nbre))
 
+    for conf in config_list:
+        arcs, liste = intersection_points(lis, conc_pt, conf)
 
-convex_shapes(lis)
+        dic_graph, start_pts = graphe_def(arcs, liste)
 
+        convex_shapes(dic_graph, start_pts, arcs)
 
+execution_main()
 
