@@ -426,9 +426,13 @@ def nombre_BF(liste, arcs):
 def execution_main():
 
     conc_pt, nbre = concave_points(lis)
+
     config_list = list(itertools.product([0, 1], repeat=nbre))
 
     all_permut = list(itertools.permutations(conc_pt))
+
+    opt_shape, opt_order = [], []
+    opt_BF, opt_spw = 0, 0
 
     for co_pts in all_permut:
         for pt in co_pts:
@@ -440,14 +444,46 @@ def execution_main():
             dic_graph, start_pts = graphe_def(arcs, liste)
 
             shape_list = convex_shapes(dic_graph, start_pts, arcs)
-            # print('shape_list:', shape_list)
+
+            n = len(shape_list)
+
+            sum_nBF, sum_spw = 0, 0
 
             for convex_sh in shape_list:
                 pol, shape_arc = arc_generator(convex_sh)
 
-                spread_width, k = nombre_BF(convex_sh, shape_arc)
-                print('nbre de BF and sp_width: ', k, 'et ', round(spread_width, 2))
+                spread_width, nbre_BF = nombre_BF(convex_sh, shape_arc)
+
+                sum_nBF += nbre_BF
+                sum_spw += spread_width
+                print('nbre de BF and sp_width: ', nbre_BF, 'et ', round(spread_width, 2))
+
+            print('sum_nBF de BF and sum_spw: ', sum_nBF, 'et ', round(sum_spw/n, 2))
+
+            if opt_BF == 0:
+
+                opt_shape = shape_list
+                opt_spw = sum_spw/n
+                opt_BF = sum_nBF
+
+            elif sum_nBF < opt_BF:
+                opt_shape = shape_list
+                opt_spw = sum_spw/n
+                opt_BF = sum_nBF
+
+            elif sum_nBF == opt_BF:
+                if sum_spw/n > opt_spw:
+                    opt_shape = shape_list
+                    opt_spw = sum_spw/n
+
             print('\n')
+
+    print('optimals convex shapes is:')
+    for opt_sh in opt_shape:
+        print(opt_sh)
+    print('with nbre_BF et spw_moyen: ', opt_BF, 'et', round(opt_spw, 2))
+
+
 
 
 execution_main()
