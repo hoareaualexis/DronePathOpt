@@ -3,21 +3,21 @@ from collections import deque
 from sympy import Point, Polygon, Ray, Segment, Line
 import itertools
 
-lis = [(4, 10), (8, 10), (8, 8), (4, 8), (4, 7), (8, 7), (9, 5), (9, 2), (6, 5), (6, 2), (1, 4), (1, 8)]
-# lis = [(3, 9), (9, 9), (12, 5), (8, 5), (8, 2), (5, 4), (1, 4)]
+# lis = [(4, 10), (8, 10), (8, 8), (4, 8), (4, 7), (8, 7), (9, 5), (9, 2), (6, 5), (6, 2), (1, 4), (1, 8)]
+lis = [(3, 9), (9, 9), (12, 5), (8, 5), (8, 2), (5, 4), (1, 4)]
 
 
 def poly_def(lis):
-    p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11 = map(Point, lis)
-    # p0, p1, p2, p3, p4, p5, p6 = map(Point, lis)
+    # p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11 = map(Point, lis)
+    p0, p1, p2, p3, p4, p5, p6 = map(Point, lis)
 
-    liste = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11]  ## liste des points de la figures
-    # liste = [p0, p1, p2, p3, p4, p5, p6]
+    # liste = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11]  ## liste des points de la figures
+    liste = [p0, p1, p2, p3, p4, p5, p6]
 
-    arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6),         ## Liste des cotes du polygone definis sous formes d'arcs
-            (p6, p7), (p7, p8), (p8, p9), (p9, p10), (p10, p11),
-            (p11, p0)]
-    # arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6), (p6, p0)]
+    # arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6),         ## Liste des cotes du polygone definis sous formes d'arcs
+    #         (p6, p7), (p7, p8), (p8, p9), (p9, p10), (p10, p11),
+    #         (p11, p0)]
+    arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p6), (p6, p0)]
 
     poly = Polygon(*liste)  ## definition du polygone
 
@@ -417,7 +417,6 @@ def nombre_BF(liste, arcs):
     while spread_width > 2:
         k += 1
         spread_width = float(long_dist1/k)
-    # print('spread_width et nombre de BF: ', spread_width, 'et', k)
 
     # return far_point1, far_point2, long_dist1, long_dist2
     return spread_width, k
@@ -478,7 +477,7 @@ def execution_main():
 
             print('\n')
 
-    print('optimals convex shapes is:')
+    print('optimals convex shapes are:')
     for opt_sh in opt_shape:
         print(opt_sh)
     print('with nbre_BF et spw_moyen: ', opt_BF, 'et', round(opt_spw, 2))
