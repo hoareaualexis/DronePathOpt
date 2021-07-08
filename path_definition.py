@@ -32,6 +32,49 @@ def long_cote(arcs):
     return grand_cote
 
 
+def nombre_BF(liste, arcs):
+    cote = long_cote(arcs)
+    line = Line(cote[0], cote[1])
+
+    point1, point2 = None, None
+    long_dist1 = 0
+    far_arc, spread_width = None, None
+
+    ##Calcul de la profondeur du champ
+    for pt in liste:
+        dist = float(pt.distance(line))
+
+        if long_dist1 < dist:
+            long_dist1 = dist
+            point1 = pt
+        elif long_dist1 == dist:
+            point2 = pt
+
+    if point2 is not None:
+        if (point1, point2) in arcs:
+            far_arc = (point1, point2)
+        elif (point2, point1) in arcs:
+            far_arc = (point2, point1)
+
+    print('long_dist: ', long_dist1)
+
+    nb_BF = float(long_dist1 / 2)
+
+    decimal = nb_BF % 1
+
+    if decimal > 0.2:
+
+        nb_BF = int(nb_BF) + 1
+
+        spread_width = decimal + 1
+    else:
+        nb_BF = int(long_dist1 / 2)
+
+    print('returned value by nbre_BF:', far_arc, spread_width, nb_BF)
+
+    return far_arc, spread_width, nb_BF
+
+
 def vect_translation_coors(arcs, spread_width):       #Calcul des coors du vecteur directeur et normal
     # _, arcs, _ = poly_def()
     cote = long_cote(arcs)
@@ -45,21 +88,24 @@ def vect_translation_coors(arcs, spread_width):       #Calcul des coors du vecte
     norme = lambda x, y: float(math.sqrt(x**2 + y**2))
 
     norm_n = norme(n_x, n_y)
+    if spread_width is not None:
+        t_x = float((spread_width/norm_n)*n_x)
+        t_y = float((spread_width/norm_n)*n_y)
 
-    t_x = float((spread_width/norm_n)*n_x)
-    t_y = float((spread_width/norm_n)*n_y)
+        vec_trans = Point(t_x, t_y)
 
-    radius = norme(t_x, t_y)
+        radius = norme(t_x, t_y)
+        print('Radius/Spreading width: ', radius)
+        print('translation coors: ', t_x, 'et', t_y)
+    else:
+        vec_trans = None
 
-    print('Radius/Spreading width: ', radius)
-    print('translation coors: ', t_x, 'et', t_y)
+    vec_trans1 = Point((2 / norm_n) * n_x, (2 / norm_n) * n_y)
 
-    translation_vector = Point(t_x, t_y)
-
-    return translation_vector
+    return vec_trans, vec_trans1
 
 
-def path(arcs, poly, vec_trans):
+def path(arcs, poly, vec_trans, vec_trans1, nb_BF):
     # liste, arcs, poly = poly_def()
     cote = long_cote(arcs)
 
@@ -72,8 +118,13 @@ def path(arcs, poly, vec_trans):
     ech1, ech2 = (1, 1), (0, 0)
     type_seg = type(Segment(ech1, ech2))         ## recuperation du type Segment
 
-    point_A = cote[0] + vec_trans/2
-    point_B = cote[1] + vec_trans/2
+    # point_A = cote[0] + vec_trans/2
+    # point_B = cote[1] + vec_trans/2
+
+    point_A = cote[0] + vec_trans1/2
+    point_B = cote[1] + vec_trans1/2
+
+    BF_line_nber = 1
 
     line = Line(point_A, point_B)
 
@@ -82,25 +133,32 @@ def path(arcs, poly, vec_trans):
     dim_list = len(intersection_line)
 
     if dim_list == 0:
-        point_A = cote[0] - vec_trans / 2
-        point_B = cote[1] - vec_trans / 2
+        point_A = cote[0] - vec_trans1 / 2
+        point_B = cote[1] - vec_trans1 / 2
 
         line = Line(point_A, point_B)
 
         intersection_line = poly.intersection(line)
 
-        def translation(a, b, vec_trans):
-            return a - vec_trans, b - vec_trans
+        def translation(a, b, vector_trans):
+            return a - vector_trans, b - vector_trans
     else:
-        def translation(a, b, vec_trans):
-            return a + vec_trans, b + vec_trans
+        def translation(a, b, vector_trans):
+            return a + vector_trans, b + vector_trans
 
     lines_path.append(intersection_line[0])
     lines_path.append(intersection_line[1])
 
     while True:
 
-        point_A, point_B = translation(intersection_line[0], intersection_line[1], vec_trans)
+        BF_line_nber += 1
+
+        if BF_line_nber >= nb_BF - 1 and (vec_trans is not None):
+
+            point_A, point_B = translation(intersection_line[0], intersection_line[1], vec_trans)
+        else:
+
+            point_A, point_B = translation(intersection_line[0], intersection_line[1], vec_trans1)
 
         line = Line(point_A, point_B)
 
@@ -122,6 +180,9 @@ def path(arcs, poly, vec_trans):
 
         elif dim_list == 1 and type_seg != type(intersection_line[0]):
             lines_path.append(intersection_line[0])
+            break
+
+        if BF_line_nber == nb_BF:
             break
 
     lines_tuple, trajet = [], []
@@ -146,27 +207,35 @@ def path(arcs, poly, vec_trans):
     return trajet
 
 
-def trajectory(itineraire, spread_width):
+def trajectory(itineraire, spread_width, nb_BF):
 
     Fr, AD = 18.33, 25
 
-    velo_vec = Fr/(AD * spread_width)
-
-    print('velo_vec: ', velo_vec)
+    # velo_vec = Fr/(AD * spread_width)
+    # velo_vec = 0
 
     norme = lambda x, y: float(math.sqrt(x ** 2 + y ** 2))
 
     trajet = []
+    BF_line_nber = 0
+
     for cpl in itineraire:
         u_x = cpl[1][0] - cpl[0][0]
         u_y = cpl[1][1] - cpl[0][1]
 
+        BF_line_nber += 1
+
         norm_u = norme(u_x, u_y)
+
+        if BF_line_nber >= nb_BF - 1 and spread_width is not None:
+            velo_vec = Fr/(AD * spread_width)
+        else:
+            velo_vec = Fr / (AD * 2)
 
         velo_x = float((velo_vec / norm_u) * u_x)
         velo_y = float((velo_vec / norm_u) * u_y)
 
-        step = norme(velo_x, velo_y)
+        # step = norme(velo_x, velo_y)
 
         velocity = Point(velo_x, velo_y)
 
@@ -175,58 +244,21 @@ def trajectory(itineraire, spread_width):
         transla_pt = Point(cpl[0]) + velocity
 
         distance = segment.distance(transla_pt)
-
+        tmp = []
         while distance == 0:
             pt = (float(transla_pt[0]), float(transla_pt[1]))
-            trajet.append(pt)
+            tmp.append(pt)
             transla_pt = transla_pt + velocity
             distance = segment.distance(transla_pt)
+        tmp.insert(0, cpl[0])
+        tmp.append(cpl[1])
+        trajet.append(tmp)
 
-    trajet.insert(0, itineraire[0][0])
-    trajet.append(itineraire[-1][1])
+    print('print trajectory:')
+    for li in trajet:
+        print(li)
 
-    print('print trajectory: ', trajet)
-
-    dis = 0
-    for i in range(len(trajet) - 1):
-        dis += distance_AB(trajet[i], trajet[i + 1])
-    print('print distance parcouru', round(dis, 2))
-    time = round(dis / velo_vec, 2)
-    print('print time: ', time)
     return trajet
-
-
-def nombre_BF(liste, arcs):
-
-    cote = long_cote(arcs)
-    line = Line(cote[0], cote[1])
-
-    far_point1 = 0
-    long_dist1, long_dist2 = 0, 0
-
-    ##Calcul de la profondeur du champ
-    for pt in liste:
-        dist = float(pt.distance(line))
-
-        if long_dist1 <= dist:
-            long_dist2 = long_dist1
-            long_dist1 = dist
-            far_point2 = far_point1
-            far_point1 = pt
-
-        elif long_dist2 <= dist:
-            long_dist2 = dist
-            far_point2 = pt
-
-    k = 1
-    spread_width = float(long_dist1/k)
-    while spread_width > 2:
-        k += 1
-        spread_width = float(long_dist1/k)
-    # print('spread_width et nombre de BF: ', spread_width, 'et', k)
-
-    # return far_point1, far_point2, long_dist1, long_dist2
-    return far_point1, spread_width, k
 
 
 def distance_AB(A, B):
@@ -280,74 +312,50 @@ def calcul_metric(trajet, drone_weight, spread_width):
     return energy, time, drone_weight
 
 
-def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, drone_weight, spread_width):
-
-    # sol = copy.copy(solution[0])
+def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, drone_weight, spread_width, nb_BF):
 
     cs_list = []
     scs_list = []
-    energy_list = []
-    dr_weight_list = []
 
-    for i in range(len(solution)):
-        cs_list.append(0)
-        scs_list.append(0)
-
-    # solution_representation = [
-    #     solution,
-    #     cs_list,
-    #     scs_list,
-    #     energy_list,
-    #     dr_weight_list,
-    # ]
+    total_travel_time, total_seed_weight_released = 0, 0
 
     remaining_energy = maximum_energy_of_the_drone
     remaining_weight = maximum_drone_weight
 
-    # metrics = calcul_metric(solution, remaining_weight)
+    nb_line_nber = 0
+    for sol in solution:
 
-    # total_energy = round(metrics[0], 2)
-    # total_travel_time = round(metrics[1], 2)
-    # total_seed_weight = round(metrics[2], 2)
+        nb_line_nber += 1
 
-    total_travel_time = 0
-    total_seed_weight_released = 0
-    for j in range(len(solution)-1):
+        for j in range(len(sol)-1):
 
-        a = solution[j]
-        b = solution[j+1]
+            a = sol[j]
+            b = sol[j+1]
 
-        metric = energy_comp(a, b, remaining_weight, spread_width)
-        remaining_energy -= metric[0]
-        remaining_weight = metric[2]
-        total_travel_time += metric[1]
-        total_seed_weight_released += metric[3]
+            if nb_line_nber >= nb_BF - 1:
+                spw = spread_width
+            else:
+                spw = 2
 
-        print('print me metric: ', metric)
+            metric = energy_comp(a, b, remaining_weight, spw)
+            remaining_energy -= metric[0]
+            remaining_weight = metric[2]
+            total_travel_time += metric[1]
+            total_seed_weight_released += metric[3]
 
-        # if remaining_energy <= 0 and remaining_weight <= drone_weight:
-        #     solution_representation[1][i] = 1
-        #     solution_representation[2][i] = 1
-        #     solution_representation[3][i] = round(remaining_energy, 2)
-        #     solution_representation[4][i] = round(remaining_weight, 2)
-        #
-        #     remaining_energy = maximum_energy_of_the_drone
-        #     remaining_weight = maximum_drone_weight
+            print('print me metric: ', metric)
 
-        if remaining_energy <= 0:
-            # solution_representation[1][i] = 1
-            cs_list[j] = 1
-            # solution_representation[3][i] = round(remaining_energy, 2)
+            if remaining_energy <= 0:
 
-            remaining_energy = maximum_energy_of_the_drone
+                cs_list.append((sol[j], total_travel_time, remaining_weight))
 
+                remaining_energy = maximum_energy_of_the_drone
 
-        if remaining_weight <= drone_weight:
-            # solution_representation[2][i] = 1
-            scs_list[j] = 1
-            # solution_representation[4][i] = round(remaining_weight, 2)
+            if remaining_weight <= drone_weight:
 
-            remaining_weight = maximum_drone_weight
+                scs_list.append((sol[j], total_travel_time, remaining_energy))
+
+                remaining_weight = maximum_drone_weight
 
         print('remaining_energy: ', remaining_energy)
         print('remaining_weight: ', remaining_weight)
@@ -361,27 +369,19 @@ def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, dro
     print('total_seed_weight_released: ', total_seed_weight_released)
     print('total_travel_time: ', total_travel_time)
 
-    nbre_sc = sum(cs_list)
-    nbre_scs = sum(scs_list)
-
-    pos = np.where(np.array(cs_list) == 1)[0]
-    pos1 = np.where(np.array(scs_list) == 1)[0]
+    # pos = np.where(np.array(cs_list) == 1)[0]
+    # pos1 = np.where(np.array(scs_list) == 1)[0]
     print('\nPoint de recharge en energie:')
-    i = 1
-    for p in pos:
-        print(i, ':', solution[p], 'time:', p/60)
+
+    for cs in cs_list:
+        print('Point coords:', cs[0], 'at time: ', cs[1], 'remaining_weight: ', cs[2])  #sol[j], total_travel_time, remaining_weight
 
     print('\n Point de recharge en semence:')
 
-    j = 0
-    for ps in pos1:
-        print(j, ':', solution[ps], 'time:', ps/60)
+    for scs in scs_list:
+        print('Point coords:', scs[0], 'at time: ', scs[1], 'remaining_energy: ', scs[2])
 
-
-    # print('cs_list position and nber: ', nbre_sc, pos)
-    # print('scs_list position and nber: ', nbre_scs, pos1)
-
-    return nbre_sc, nbre_scs, cs_list, scs_list,
+    return cs_list, scs_list
 
 
 ##Drone specs##
@@ -406,15 +406,15 @@ def execution_main():
 
     liste, arcs, poly = poly_def()
 
-    far_point1, spread_width, k = nombre_BF(liste, arcs)
+    far_arc, spread_width, nb_BF = nombre_BF(liste, arcs)
 
-    vec_trans = vect_translation_coors(arcs, spread_width)
+    vec_trans, vec_trans1 = vect_translation_coors(arcs, spread_width)
 
-    ligne_BF = path(arcs, poly, vec_trans)
+    ligne_BF = path(arcs, poly, vec_trans, vec_trans1, nb_BF)
 
-    trajectoire = trajectory(ligne_BF, spread_width)
+    trajectoire = trajectory(ligne_BF, spread_width, nb_BF)
 
-    f_objective(trajectoire, maximum_energy_of_the_drone, maximum_drone_weight, drone_weight, spread_width)
+    f_objective(trajectoire, maximum_energy_of_the_drone, maximum_drone_weight, drone_weight, spread_width, nb_BF)
 
 
 execution_main()

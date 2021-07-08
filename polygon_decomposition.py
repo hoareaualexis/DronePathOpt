@@ -483,7 +483,5 @@ def execution_main():
     print('with nbre_BF et spw_moyen: ', opt_BF, 'et', round(opt_spw, 2))
 
 
-
-
 execution_main()
 

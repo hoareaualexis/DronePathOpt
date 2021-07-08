@@ -12,3 +12,18 @@ Point de recharge en energie:
 1 : (15.7, 43.64) time: 15.45
 2 : (29.42, 14.092) time: 30.9168
 3 : (43.14, 30.17) time: 46.383
+
+total_distance:  1600.6666666666663
+total_seed_weight_released:  60.19571999999745
+total_travel_time:  3274.6863066011997
+
+Point de recharge en energie:
+Point coords: (14.0, 20.4298) at time:  855.963993453355 remaining_weight:  20.27286000000099
+Point coords: (26.0, 43.5256) at time:  1720.9279869067107 remaining_weight:  21.39099000000092
+Point coords: (40.0, 31.3034) at time:  2591.5526459356247 remaining_weight:  22.399140000000855
+
+ Point de recharge en semence:
+Point coords: (14.0, 46.0918) at time:  925.963993453355 remaining_energy:  2306494.3544413275
+Point coords: (28.0, 8.5742) at time:  1851.58865248227 remaining_energy:  2215344.122200043
+Point coords: (42.0, 38.7598) at time:  2777.2133115111837 remaining_energy:  2124087.0098605137
+
