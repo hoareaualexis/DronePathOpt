@@ -4,21 +4,26 @@ from matplotlib.path import Path
 import math
 import copy
 
-# lis = [(1, 3), (5, 1), (9, 3), (9, 7), (5, 8), (1, 7)]
-lis = [(1, 1), (50, 1), (50, 50), (1, 50)]
+lis = [(1, 3), (5, 1), (9, 3), (9, 7), (5, 8), (1, 7)]
+# lis = [(1, 1), (50, 1), (50, 50), (1, 50)]
 
-def poly_def():
-    # p0, p1, p2, p3, p4, p5 = map(Point, lis)
-    p0, p1, p2, p3 = map(Point, lis)
-    # liste = [p0, p1, p2, p3, p4, p5]
-    liste = [p0, p1, p2, p3]
-    # arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p4), (p4, p5), (p5, p0)]
-    arcs = [(p0, p1), (p1, p2), (p2, p3), (p3, p0)]
-    # lis = [(1, 1), (10, 1), (10, 7), (1, 7)]
-    # p0, p1, p2, p3 = map(Point, lis)
-    # liste = [p0, p1, p2, p3]
+
+def arc_generator(liste):
+    arcs, liste1 = [], []
+    n = len(liste)
+    for i in range(n - 1):
+        point1, point2 = Point(liste[i]), Point(liste[i + 1])
+        arcs.append((point1, point2))
+    arcs.append((Point(liste[n - 1]), Point(liste[0])))
+
+    for pt in liste:
+        point1 = Point(pt)
+        liste1.append(point1)
+
     poly = Polygon(*liste)
-    return liste, arcs, poly
+
+    return poly, arcs, liste1
+
 
 def long_cote(arcs):
 
@@ -33,6 +38,7 @@ def long_cote(arcs):
 
 
 def nombre_BF(liste, arcs):
+
     cote = long_cote(arcs)
     line = Line(cote[0], cote[1])
 
@@ -76,7 +82,7 @@ def nombre_BF(liste, arcs):
 
 
 def vect_translation_coors(arcs, spread_width):       #Calcul des coors du vecteur directeur et normal
-    # _, arcs, _ = poly_def()
+
     cote = long_cote(arcs)
 
     u_x = cote[0][0] - cote[1][0]
@@ -235,8 +241,6 @@ def trajectory(itineraire, spread_width, nb_BF):
         velo_x = float((velo_vec / norm_u) * u_x)
         velo_y = float((velo_vec / norm_u) * u_y)
 
-        # step = norme(velo_x, velo_y)
-
         velocity = Point(velo_x, velo_y)
 
         segment = Segment(cpl[0], cpl[1])
@@ -288,28 +292,8 @@ def energy_comp(a, b, dr_weight, spread_width):
                 air_density * velocity * drone_width ** 2)
 
     energy = Ph * time * coef_vrais
-    print('la petite energie: ', energy)
 
     return energy, time, dr_weight, released_weight
-
-
-def calcul_metric(trajet, drone_weight, spread_width):
-    # trajet = trajectory()
-    # _, spread_width, _ = nombre_BF()
-    energy = 0
-    time = 0
-    released_weight = 0
-    # cur_weight = drone_weight
-    n = len(trajet) - 2
-    for i in range(n):
-
-        metrics = energy_comp((trajet[i]), trajet[i+1], drone_weight, spread_width)
-        print(metrics)
-        energy += metrics[0]
-        time += metrics[1]
-        released_weight += metrics[3]
-
-    return energy, time, drone_weight
 
 
 def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, drone_weight, spread_width, nb_BF):
@@ -317,10 +301,11 @@ def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, dro
     cs_list = []
     scs_list = []
 
-    total_travel_time, total_seed_weight_released = 0, 0
+    total_travel_time, total_seed_weight_released, total_distance = 0, 0, 0
 
     remaining_energy = maximum_energy_of_the_drone
     remaining_weight = maximum_drone_weight
+    turning_energy = None
 
     nb_line_nber = 0
     for sol in solution:
@@ -342,8 +327,22 @@ def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, dro
             remaining_weight = metric[2]
             total_travel_time += metric[1]
             total_seed_weight_released += metric[3]
+            total_distance += distance_AB(a, b)
+
+            turning_energy = metric[0]
+
+            dist_unit = distance_AB(sol[0], sol[1])
+            rem_line_dist = distance_AB(b, sol[-1])
+            seed_weight_estimation = rem_line_dist*feed_rate*0.001/dist_unit
+
+            for k in range(nb_line_nber, len(solution)):
+                sol_tmp = solution[k]
+                dist_unit = distance_AB(sol_tmp[0], sol_tmp[1])
+                rem_line_dist = distance_AB(sol_tmp[0], sol_tmp[-1])
+                seed_weight_estimation += rem_line_dist*feed_rate*0.001/dist_unit
 
             print('print me metric: ', metric)
+            print('Seed weight estimator: ', seed_weight_estimation)
 
             if remaining_energy <= 0:
 
@@ -351,19 +350,36 @@ def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, dro
 
                 remaining_energy = maximum_energy_of_the_drone
 
+                total_travel_time += 120        #temps perdu a la recharge
+
             if remaining_weight <= drone_weight:
 
                 scs_list.append((sol[j], total_travel_time, remaining_energy))
 
-                remaining_weight = maximum_drone_weight
+                total_travel_time += 120        #temps perdu a la recharge
 
-        print('remaining_energy: ', remaining_energy)
-        print('remaining_weight: ', remaining_weight)
-        print('total travel time: ', total_travel_time)
+                if seed_weight_estimation <= maximum_drone_weight:
+                    remaining_weight = seed_weight_estimation + drone_weight
+                else:
+                    remaining_weight = maximum_drone_weight
+
+
+
+        if nb_line_nber < nb_BF - 1:
+            total_travel_time += 8      #temps perdu au virage
+
+        else:
+            total_travel_time += 5
+
+        if nb_line_nber < nb_BF - 1:
+            remaining_energy -= turning_energy          #energy perdu au virage
+
+    print('remaining_energy: ', remaining_energy)
+    print('remaining_weight: ', remaining_weight)
 
     velocity = feed_rate / (dosage * spread_width)
 
-    total_distance = velocity*total_travel_time
+    total_distance = velocity * total_travel_time
 
     print('\ntotal_distance: ', total_distance)
     print('total_seed_weight_released: ', total_seed_weight_released)
@@ -374,12 +390,12 @@ def f_objective(solution, maximum_energy_of_the_drone, maximum_drone_weight, dro
     print('\nPoint de recharge en energie:')
 
     for cs in cs_list:
-        print('Point coords:', cs[0], 'at time: ', cs[1], 'remaining_weight: ', cs[2])  #sol[j], total_travel_time, remaining_weight
+        print('Point coords:', cs[0], 'at time (min): ', round(cs[1]/60, 3), 'remaining_weight (kg): ', round(cs[2], 2))  #sol[j], total_travel_time, remaining_weight
 
-    print('\n Point de recharge en semence:')
+    print('\n Point de recharge en semences:')
 
     for scs in scs_list:
-        print('Point coords:', scs[0], 'at time: ', scs[1], 'remaining_energy: ', scs[2])
+        print('Point coords:', scs[0], 'at time(min): ', round(scs[1]/60, 3), 'remaining_energy (unity): ', round(scs[2], 2))
 
     return cs_list, scs_list
 
@@ -404,7 +420,7 @@ coef_vrais = 54.1415108851846        ## Coefficient d'ajustement
 
 def execution_main():
 
-    liste, arcs, poly = poly_def()
+    poly, arcs, liste = arc_generator(lis)
 
     far_arc, spread_width, nb_BF = nombre_BF(liste, arcs)
 

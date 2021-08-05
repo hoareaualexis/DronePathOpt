@@ -18,12 +18,57 @@ total_seed_weight_released:  60.19571999999745
 total_travel_time:  3274.6863066011997
 
 Point de recharge en energie:
-Point coords: (14.0, 20.4298) at time:  855.963993453355 remaining_weight:  20.27286000000099
-Point coords: (26.0, 43.5256) at time:  1720.9279869067107 remaining_weight:  21.39099000000092
-Point coords: (40.0, 31.3034) at time:  2591.5526459356247 remaining_weight:  22.399140000000855
+Point coords: (14.0, 20.4298) at time:  14.266 remaining_weight:  20.27
+Point coords: (26.0, 43.5256) at time:  28.682 remaining_weight:  21.39
+Point coords: (40.0, 31.3034) at time:  43.193 remaining_weight:  22.4
 
  Point de recharge en semence:
-Point coords: (14.0, 46.0918) at time:  925.963993453355 remaining_energy:  2306494.3544413275
-Point coords: (28.0, 8.5742) at time:  1851.58865248227 remaining_energy:  2215344.122200043
-Point coords: (42.0, 38.7598) at time:  2777.2133115111837 remaining_energy:  2124087.0098605137
+Point coords: (14.0, 46.0918) at time:  15.433 remaining_energy:  2306494.35
+Point coords: (28.0, 8.5742) at time:  30.86 remaining_energy:  2215344.12
+Point coords: (42.0, 38.7598) at time:  46.287 remaining_energy:  2124087.01
+
+
+Seed weight estimator:  0.0
+remaining_energy:  1780393.8816751556
+remaining_weight:  19.0
+
+total_distance:  2164.741866666666
+total_seed_weight_released:  60.19571999999745
+total_travel_time:  4428.686306601199
+
+Point de recharge en energie:
+Point coords: (14.0, 20.4298) at time (min):  15.066 remaining_weight (kg):  20.27
+Point coords: (26.0, 43.5256) at time (min):  34.282 remaining_weight (kg):  21.39
+Point coords: (34.0, 30.6946) at time (min):  47.143 remaining_weight (kg):  38.3
+Point coords: (44.0, 22.1384) at time (min):  60.865 remaining_weight (kg):  26.11
+
+ Point de recharge en semences:
+Point coords: (14.0, 46.0918) at time(min):  18.233 remaining_energy (unity):  2306494.35
+Point coords: (28.0, 8.5742) at time(min):  38.593 remaining_energy (unity):  2215344.12
+Point coords: (49.0, 47.9248) at time(min):  69.674 remaining_energy (unity):  1783501.77
+Point coords: (49.0, 49.88) at time(min):  71.728 remaining_energy (unity):  1780393.88
+
+
+
+launched 17-07-21 at 11:42pm
+
+Seed weight estimator:  0.0
+remaining_energy:  1730013.2194677533
+remaining_weight:  19.0
+
+total_distance:  2164.741866666666
+total_seed_weight_released:  60.19571999999745
+total_travel_time:  4428.686306601199
+
+Point de recharge en energie:
+Point coords: (14.0, 17.8636) at time (min):  14.949 remaining_weight (kg):  20.4
+Point coords: (26.0, 38.3932) at time (min):  34.049 remaining_weight (kg):  21.65
+Point coords: (34.0, 28.1284) at time (min):  47.026 remaining_weight (kg):  38.43
+Point coords: (44.0, 29.4704) at time (min):  60.531 remaining_weight (kg):  26.48
+
+ Point de recharge en semences:
+Point coords: (14.0, 46.0918) at time(min):  18.233 remaining_energy (unity):  2296467.74
+Point coords: (28.0, 8.5742) at time(min):  38.593 remaining_energy (unity):  2191889.89
+Point coords: (49.0, 47.9248) at time(min):  69.674 remaining_energy (unity):  1733121.1
+Point coords: (49.0, 49.88) at time(min):  71.728 remaining_energy (unity):  1730013.22
 
